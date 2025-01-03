@@ -2,10 +2,8 @@ import io
 from flask import Flask, request, send_file, render_template, jsonify
 from PIL import Image
 import qrcode
-from flask_frozen import Freezer
 
 app = Flask(__name__)
-freezer = Freezer(app)
 
 @app.route('/generate_qrcode', methods=['GET', 'POST'])
 def generate_qrcode():
