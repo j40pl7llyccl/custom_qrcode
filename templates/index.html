@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客製化 QR Code 生成器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-50 p-8">
+    <div class="grid grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <!-- 左側：圖片上傳 -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                圖片上傳
+            </h2>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center mt-4 relative">
+                <label for="image" class="cursor-pointer">
+                    <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <div class="mt-4">
+                        <span class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">選擇圖片</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">支援 JPG, PNG 格式，最大 5MB</p>
+                </label>
+                <input type="file" id="image" name="image" accept="image/*" class="hidden">
+                
+                <!-- 進度條 -->
+                <div id="upload-progress" class="absolute bottom-4 left-4 right-4 hidden bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-full rounded-full" style="width: 0%;" id="progress-bar"></div>
+                </div>
+                
+                <!-- 成功提示 -->
+                <div id="upload-success" class="mt-4 hidden text-green-600 font-semibold">
+                    圖片上傳成功！
+                </div>
+            </div>
+            <div class="mt-4">
+                <label for="data" class="block text-sm font-medium text-gray-700">QR Code 內容</label>
+                <input type="text" id="data" name="data" placeholder="輸入要轉換的文字或網址" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <button id="generateBtn" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full">生成 QR Code</button>
+        </div>
+
+        <!-- 右側：生成結果 -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                生成結果
+            </h2>
+            <div class="border rounded-lg p-4 flex justify-center items-center mt-4">
+                <div id="preview" class="w-64 h-64 bg-gray-100 rounded flex items-center justify-center">
+                    QR Code 預覽
+                </div>
+            </div>
+            <button id="downloadBtn" class="mt-4 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full hidden">下載 QR Code</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('image').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const progressBar = document.getElementById('progress-bar');
+                const progressContainer = document.getElementById('upload-progress');
+                const successMessage = document.getElementById('upload-success');
+
+                progressContainer.classList.remove('hidden');
+                successMessage.classList.add('hidden');
+                progressBar.style.width = '0%';
+
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        progressContainer.classList.add('hidden');
+                        successMessage.classList.remove('hidden');
+                    }
+                }, 100);
+            }
+        });
+
+        document.getElementById('generateBtn').addEventListener('click', async function () {
+            const formData = new FormData();
+            const image = document.getElementById('image').files[0];
+            const data = document.getElementById('data').value;
+
+            if (!image || !data) {
+                alert('請上傳圖片並輸入內容！');
+                return;
+            }
+
+            // 把圖片檔和文字都append到FormData
+            formData.append('image', image);
+            formData.append('data', data);
+
+            try {
+                // 使用相對路徑 /generate_qrcode 來呼叫後端
+                const response = await fetch('/generate_qrcode', {
+                    method: 'POST',
+                    body: formData,
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const preview = document.getElementById('preview');
+                    preview.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
+
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    downloadBtn.classList.remove('hidden');
+                    downloadBtn.onclick = () => {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'custom_qrcode.png';
+                        a.click();
+                    };
+                } else {
+                    alert('生成失敗，請稍後重試！');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('發生錯誤，請稍後重試！');
+            }
+        });
+    </script>
+</body>
+</html>
