@@ -13,7 +13,7 @@ def generate_qrcode():
     """
     if request.method == 'GET':
         # 直接用瀏覽器開 http://127.0.0.1:5000/generate_qrcode 時，回傳index.html
-        return render_template('index.html')
+        return render_template('/templates/index.html')
 
     # 以下處理POST請求
     file = request.files.get('image')   # 對應 <input name="image">
