@@ -1,5 +1,5 @@
 from flask_frozen import Freezer
-from myapp import app                #依照第一步驟的檔名來決定
+from myapp import app                
 
 freezer = Freezer(app)
 
