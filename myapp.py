@@ -5,7 +5,7 @@ import qrcode
 
 app = Flask(__name__)
 
-@app.route('/generate_qrcode', methods=['GET', 'POST'])
+@app.route('/generate_qrcode', methods='GET')
 def generate_qrcode():
     """
     - GET:  直接回傳前端頁面 (index.html)，提供圖片上傳與文字輸入介面
