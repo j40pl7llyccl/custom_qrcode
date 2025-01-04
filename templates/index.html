@@ -104,7 +104,7 @@
 
             try {
                 // 使用相對路徑 /generate_qrcode 來呼叫後端
-                const response = await fetch('/generate_qrcode', {
+                const response = await fetch('/qrcode', {
                     method: 'POST',
                     body: formData,
                 });
